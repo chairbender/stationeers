@@ -1,0 +1,116 @@
+move sp 0 #Not sure if needed
+s d1 Mode 10
+s d1 Setting STR("GOTOIN") # goto initial pos
+jal GoToPos
+s d0 Mode 3
+s d1 Setting STR("ROAM") # roaming
+yield
+jal Disable
+l r0 d5 Open # goto interrupt?
+breqz r0 5
+s d1 Setting STR("GOTORM") # goto roam pos
+jal GoToPos
+s d5 Open 0 # reset lever
+jr -8
+ls r0 d0 0 Charge # low bat
+brgt r0 30 3
+s d2 Open 1 # open the lever
+j 7 # jump to return
+l r0 d2 Open # return lever?
+brnez r0 4
+l r0 d0 Mode
+breq r0 6 2 # return when full
+jr -15
+s d1 Setting STR("RETVRN") # return
+l r4 d0 PositionX       # load cur x pos
+move r8 307      # minX
+move r9 383      # maxX
+jal Closest   # call subroutine, result in r0
+s d0 TargetX r0
+l r4 d0 PositionZ
+move r8 -308     # minZ
+move r9 -256     # maxZ
+jal Closest   # call subroutine, result in r0
+s d0 TargetZ r0
+s d0 Mode 2 #targeted a corner of the base
+l r1 d0 PositionX  # save targetCorner for leave
+l r2 d0 PositionZ
+jal WaitXZPos
+s d0 TargetZ -308 #MoveZMinWard
+s d0 Mode 2
+jal WaitXZPos  #MovingZMinWard
+s d0 TargetX 332  #MoveRampXWard
+s d0 Mode 2
+jal WaitXZPos
+s d0 TargetZ -293 #MoveUpStairs
+s d0 Mode 2
+jal WaitXZPos
+s d0 TargetX 337
+s d0 Mode 5
+jal WaitXZPos #ReturnChutePathfinding
+s d0 Mode 4
+s d1 Setting STR("UNLOD")
+jal WaitXZPos
+s d1 Setting STR("LEVSTY") # LeaveOrStay
+jal Disable
+l r10 d2 Open # lever still up? play sound
+s d3 On r10 # speaker On if lever up
+sleep 5 # wait for sound to play
+s d3 On 0 # sound off, needed for non-looping sfx
+ls r0 d0 0 Charge # low bat still?
+brlt r0 30 -6
+brnez r10 -7 # lever down + good bat? resume
+s d3 On 0 # speakers off
+s d1 Setting STR("LEAVE") # LeaveTopStairs
+s d0 TargetX 332
+s d0 Mode 2
+jal WaitXZPos
+s d0 TargetZ -308
+s d0 Mode 2
+jal WaitXZPos # now at bottom of stairs
+s d0 TargetX r1 # safely back to target X corner
+s d0 Mode 2
+jal WaitXZPos
+s d0 TargetZ r2 # safely back to target Z corner
+s d0 Mode 2
+jal WaitXZPos
+j 0 # restart
+WaitXZPos:
+yield # WaitModeZero: jump back to ra when done
+push ra
+jal Disable
+pop ra
+l r0 d0 PositionY
+s d0 TargetY r0 # y target to cur to ignore
+l r0 d0 Mode # mode 0? done waiting
+breqz r0 2
+jr -8
+j ra # end WaitModeZero
+Closest: #r4 val, r8 first ref, r9 second ref, o r0
+sub r5 r4 r8     # distance from r1
+abs r5 r5
+sub r6 r4 r9     # distance from r2
+abs r6 r6
+slt r7 r5 r6     # which is closer
+select r0 r7 r8 r9
+j ra             # return (jump to return address)
+Disable:
+l r15 d4 Open # aimee disable lever
+breqz r15 8  # eqz = not disabled
+l r12 d0 Mode # aimee just disabled
+s d0 Mode 0 # make her do nothing
+s d0 On 0
+l r15 d4 Open # polling until lever off again
+brnez r15 -1
+s d0 Mode r12 # re-enabled - restore state
+s d0 On 1
+j ra
+GoToPos:
+s db:0 Channel0 1 # get initial pos
+l r0 db:0 Channel0 # wait for return
+brne r0 0 -1
+s d0 Mode 2 # move to initial pos
+push ra # save ra
+jal WaitXZPos # done, in initial pos
+pop ra
+j ra

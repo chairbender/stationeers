@@ -1,0 +1,56 @@
+alias robot d0
+alias xDial d1
+alias zDial d2
+alias xDisp d3
+alias zDisp d4
+alias targetX r14
+alias targetZ r15
+define cmdSetTarget 1
+define cmdMoveToTarget 2 # not currently used
+define xScale 1000
+define zScale 1000
+define xOffset -193 # center - xScale * .5 = xOffset
+define zOffset -790
+s xDisp Mode 0
+s zDisp Mode 0
+# initially clear the channel
+s db:0 Channel0 0
+
+poll:
+l r0 xDial Ratio # recalc targetX / z
+mul r0 r0 xScale
+add r14 r0 xOffset
+l r0 zDial Ratio
+mul r0 r0 zScale
+add r15 r0 zOffset
+s xDisp Setting r14 # update displays
+s zDisp Setting r15
+l r0 db:0 Channel0 # wait until told to takeover
+bnan r0 poll
+beqz r0 poll
+beq r0 cmdSetTarget SetTarget
+beq r0 cmdMoveToTarget MoveToTarget
+done:
+s db:0 Channel0 0
+j poll
+
+SetTarget:
+s robot TargetX r14
+s robot TargetZ r15
+j done
+
+MoveToTarget: # not currently used
+s robot TargetX r14
+s robot TargetZ r15
+s robot Mode 2
+jal WaitXZPos
+j done
+
+WaitXZPos: # not currently used missing Disable
+yield # WaitModeZero: jump back to ra when done
+l r0 d0 PositionY
+s d0 TargetY r0 # y target to cur to ignore
+l r0 d0 Mode # mode 0? done waiting
+breqz r0 2
+jr -8
+j ra # end WaitModeZero
