@@ -1,22 +1,6 @@
 alias robot d0
-alias dispX d1
-alias dispY d2
-alias dispZ d3
-alias dispBat d4
-alias dispMode d5
+alias dispBat d1
 loop:
-l r0 robot PositionX
-s dispX Setting r0
-
-l r0 robot PositionY
-s dispY Setting r0
-
-l r0 robot PositionZ
-s dispZ Setting r0
-
-l r0 robot Mode
-s dispMode Setting r0
-
 ls r0 robot 0 ChargeRatio
 s dispBat Mode 1
 s dispBat Setting r0

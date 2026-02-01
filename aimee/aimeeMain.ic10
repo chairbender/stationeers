@@ -4,7 +4,7 @@ s d1 Setting STR("GOTOIN") # goto initial pos
 jal GoToPos
 s d1 Setting STR("ROAM") # roaming
 s d0 Mode 3
-sleep 1
+yield
 jal Disable
 l r0 d5 Open # goto interrupt?
 breqz r0 5 # skip gotorm if lever not set
