@@ -1,0 +1,18 @@
+
+alias coSensor d0
+alias nSensor d1
+alias oSensor d2
+alias coDisp d3
+alias nDisp d4
+alias oDisp d5
+
+loop:
+sleep 1
+l r0 coSensor Pressure
+s coDisp Setting r0
+l r0 nSensor Pressure
+s nDisp Setting r0
+l r0 oSensor Pressure
+s oDisp Setting r0
+
+j loop

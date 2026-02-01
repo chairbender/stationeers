@@ -4,23 +4,23 @@ s d1 Setting STR("GOTOIN") # goto initial pos
 jal GoToPos
 s d1 Setting STR("ROAM") # roaming
 s d0 Mode 3
-yield
+sleep 1
 jal Disable
 l r0 d5 Open # goto interrupt?
-breqz r0 5
+breqz r0 5 # skip gotorm if lever not set
 s d1 Setting STR("GOTORM") # goto roam pos
 jal GoToPos
 s d5 Open 0 # reset lever
-jr -8
+jr -9
 ls r0 d0 0 Charge # low bat
 brgt r0 30 3
 s d2 Open 1 # open the lever
-j 7 # jump to return
+jr 6 # jump to return
 l r0 d2 Open # return lever?
 brnez r0 4
 l r0 d0 Mode
 breq r0 6 2 # return when full
-jr -15
+jr -18
 s d1 Setting STR("RETVRN") # return
 l r4 d0 PositionX       # load cur x pos
 move r8 307      # minX
@@ -98,7 +98,7 @@ Disable:
 l r3 d1 Setting # preserve setting
 s d1 Setting STR("DSBCHK") # disable check
 l r15 d4 Open # aimee disable lever
-breqz r15 11  # eqz = not disabled
+breqz r15 10  # eqz = not disabled
 s d1 Setting STR("DSBL") # disable check
 l r12 d0 Mode # aimee just disabled
 s d0 Mode 0 # make her do nothing
@@ -106,9 +106,9 @@ s d0 On 0
 l r15 d4 Open # polling until lever off again
 yield
 brnez r15 -2
-s d1 Setting r3 # restore setting
 s d0 Mode r12 # re-enabled - restore state
 s d0 On 1
+s d1 Setting r3 # restore setting
 j ra
 GoToPos:
 s db:0 Channel0 1 # get initial pos

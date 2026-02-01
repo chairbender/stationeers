@@ -1,0 +1,18 @@
+# filtration which shuts off when both
+# filters are low. 2 filters required of same type.
+
+# check slot 0 and 1 status
+loop:
+sleep 1
+ls r0 db 0 Quantity
+ls r1 db 1 Quantity
+add r0 r0 r1
+brlt r0 2 2 #
+j loop
+s db On 0 # emergency shutoff
+sleep 1 # poll until refilled
+ls r0 db 0 Quantity 
+ls r1 db 1 Quantity
+add r0 r0 r1
+bge r0 2 loop # refilled?
+jr -5
