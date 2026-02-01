@@ -17,6 +17,7 @@ s zDisp Mode 0
 s db:0 Channel0 0
 
 poll:
+yield
 l r0 xDial Ratio # recalc targetX / z
 mul r0 r0 xScale
 add r14 r0 xOffset

@@ -2,8 +2,8 @@ move sp 0 #Not sure if needed
 s d1 Mode 10
 s d1 Setting STR("GOTOIN") # goto initial pos
 jal GoToPos
-s d0 Mode 3
 s d1 Setting STR("ROAM") # roaming
+s d0 Mode 3
 yield
 jal Disable
 l r0 d5 Open # goto interrupt?
@@ -58,7 +58,7 @@ s d3 On r10 # speaker On if lever up
 sleep 5 # wait for sound to play
 s d3 On 0 # sound off, needed for non-looping sfx
 ls r0 d0 0 Charge # low bat still?
-brlt r0 30 -6
+brlt r0 30 -7
 brnez r10 -7 # lever down + good bat? resume
 s d3 On 0 # speakers off
 s d1 Setting STR("LEAVE") # LeaveTopStairs
@@ -95,20 +95,26 @@ slt r7 r5 r6     # which is closer
 select r0 r7 r8 r9
 j ra             # return (jump to return address)
 Disable:
+l r3 d1 Setting # preserve setting
+s d1 Setting STR("DSBCHK") # disable check
 l r15 d4 Open # aimee disable lever
-breqz r15 8  # eqz = not disabled
+breqz r15 11  # eqz = not disabled
+s d1 Setting STR("DSBL") # disable check
 l r12 d0 Mode # aimee just disabled
 s d0 Mode 0 # make her do nothing
 s d0 On 0
 l r15 d4 Open # polling until lever off again
-brnez r15 -1
+yield
+brnez r15 -2
+s d1 Setting r3 # restore setting
 s d0 Mode r12 # re-enabled - restore state
 s d0 On 1
 j ra
 GoToPos:
 s db:0 Channel0 1 # get initial pos
 l r0 db:0 Channel0 # wait for return
-brne r0 0 -1
+yield
+brne r0 0 -2
 s d0 Mode 2 # move to initial pos
 push ra # save ra
 jal WaitXZPos # done, in initial pos
